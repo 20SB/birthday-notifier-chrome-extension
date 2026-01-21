@@ -1,0 +1,17 @@
+{
+    "manifest_version": 3,
+    "name": "Birthday Notifier",
+    "version": "1.0",
+    "description": "Displays a notification on any tab if it's a friend's birthday.",
+    "permissions": ["activeTab", "scripting"],
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"],
+            "css": ["styles.css"]
+        }
+    ],
+    "background": {
+        "service_worker": "background.js"
+    }
+}
