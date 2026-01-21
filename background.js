@@ -1,3 +1,16 @@
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.local.get(['friends'], (result) => {
+    if (!result.friends) {
+      // Initialize with data from friends.json if storage is empty
+      fetch(chrome.runtime.getURL('friends.json'))
+        .then(response => response.json())
+        .then(data => {
+          chrome.storage.local.set({ friends: data });
+        });
+    }
+  });
+});
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'checkBirthday') {
     checkBirthdays().then(names => {
@@ -9,15 +22,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function checkBirthdays() {
   try {
-    const response = await fetch(chrome.runtime.getURL('friends.json'));
-    const friends = await response.json();
-    
+    const result = await chrome.storage.local.get(['friends']);
+    const friends = result.friends || [];
+
     // Use local time for date checking, as implied by "today" 
     const today = new Date();
     // Get month (0-11) and date (1-31)
     const currentMonth = today.getMonth() + 1; // 1-12
     const currentDate = today.getDate(); // 1-31
-    
+
     const birthdayFriends = friends.filter(friend => {
       const dob = new Date(friend.dob);
       // UTC check might be off depending on how date string is parsed,
@@ -28,7 +41,7 @@ async function checkBirthdays() {
       const [year, month, day] = friend.dob.split('-').map(Number);
       return month === currentMonth && day === currentDate;
     }).map(f => f.name);
-    
+
     return birthdayFriends;
   } catch (error) {
     console.error('Error fetching friends:', error);

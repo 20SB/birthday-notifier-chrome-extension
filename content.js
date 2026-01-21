@@ -1,9 +1,20 @@
-// Send message to background script to check for birthdays
-chrome.runtime.sendMessage({ action: 'checkBirthday' }, (response) => {
-    if (response && response.birthdays.length > 0) {
-        showNotification(response.birthdays);
+// Check on load
+checkForBirthdays();
+
+// Listen for manual trigger
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'triggerCheck') {
+        checkForBirthdays();
     }
 });
+
+function checkForBirthdays() {
+    chrome.runtime.sendMessage({ action: 'checkBirthday' }, (response) => {
+        if (response && response.birthdays.length > 0) {
+            showNotification(response.birthdays);
+        }
+    });
+}
 
 function showNotification(names) {
     const banner = document.createElement('div');
